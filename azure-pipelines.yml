@@ -1,0 +1,70 @@
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: 'Source\WOA Deployer.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+- checkout: self
+  submodules: recursive
+  persistCredentials: true
+
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:    
+    restoreSolution: '$(solution)'
+
+- task: VSBuild@1
+  displayName: 'Build solution'
+  inputs:
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: ArchiveFiles@2
+  displayName: ZIP GUI
+  inputs:
+    rootFolderOrFile: 'Source\Deployer.Gui\bin\$(buildConfiguration)'
+    includeRootFolder: false    
+    archiveFile: '$(Build.ArtifactStagingDirectory)/WOA Deployer GUI.zip'
+
+- task: ArchiveFiles@2
+  displayName: ZIP CLI
+  inputs:
+    rootFolderOrFile: 'Source\Deployer.Cli\bin\$(buildConfiguration)'
+    includeRootFolder: false    
+    archiveFile: '$(Build.ArtifactStagingDirectory)/WOA Deployer CLI.zip'
+ 
+- task: PublishBuildArtifacts@1
+  displayName: Publish GUI
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/WOA Deployer GUI.zip'
+    ArtifactName: 'WOA Deployer GUI'
+    publishLocation: 'Container'
+  
+- task: PublishBuildArtifacts@1
+  displayName: Publish CLI
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/WOA Deployer CLI.zip'
+    ArtifactName: 'WOA Deployer CLI'
+    publishLocation: 'Container'
+
+- task: GitHubRelease@1
+  displayName: Create GitHub Release
+  inputs:    
+    gitHubConnection: 'github.com_SuperJMN'
+    repositoryName: 'WOA-Project/WOA-Deployer'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'gitTag'
