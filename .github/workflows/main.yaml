@@ -1,0 +1,36 @@
+name: Build and Upload WOA Deployer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Install Dependencies
+      run: |
+        choco install -y visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+        choco install -y git
+        choco install -y nsis
+
+    - name: Build Solution
+      run: |
+        msbuild /restore /p:Configuration=Release WOA-Deployer.sln
+
+    - name: Archive Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: WOA-Deployer-Artifact
+        path: WOA-Deployer/bin/Release/*
