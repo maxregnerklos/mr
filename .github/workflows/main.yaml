@@ -15,6 +15,9 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
+      with:
+        repository: maxregnerklos/mr
+        path: mr
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
@@ -27,10 +30,10 @@ jobs:
 
     - name: Build Solution
       run: |
-        msbuild /restore /p:Configuration=Release WOA-Deployer.sln
+        msbuild /restore /p:Configuration=Release mr/Source/WOA%20Deployer.sln
 
     - name: Archive Artifact
       uses: actions/upload-artifact@v2
       with:
         name: WOA-Deployer-Artifact
-        path: WOA-Deployer/bin/Release/*
+        path: mr/Source/WOA Deployer/bin/Release/*
